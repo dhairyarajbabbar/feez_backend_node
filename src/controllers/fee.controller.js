@@ -172,6 +172,7 @@ async function listStudentsWithFeeDetails(req, res) {
           enrollmentDate: student.enrollmentDate,
           dueFee: dueFee,
           feeDetails: formattedFeeDetails,
+          id: student._id,
         });
       }
     }
