@@ -1,5 +1,6 @@
-const { Payment } = require('../models/payment');
-const { Student } = require('../models/student');
+// const Student = require('../models/student');
+const Payment = require('../models/payment');
+const Fee = require('../models/fee'); 
 
 async function getAllPayments(req, res) {
   try {
@@ -22,23 +23,39 @@ async function getPaymentById(req, res) {
     res.status(500).json({ error: 'Failed to retrieve payment' });
   }
 }
-
 async function createPaymentForFee(req, res) {
   try {
     const { feeId, schoolId } = req.body;
+    console.log(req.body);
+    const fee = await Fee.findById(feeId);
+    if (!fee) {
+      return res.status(404).json({ error: 'Fee not found' });
+    }
+    const studentId = fee.studentId;
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    if (!student.schoolId.equals(schoolId)) {
+      return res.status(400).json({ error: 'Student does not belong to the specified school' });
+    }
     const payment = new Payment({
-      studentId: req.body.studentId, 
+      studentId,
       schoolId,
-      amount: req.body.amount, 
-      method: 'Cash', 
-      feeIds: [feeId] 
+      amount: fee.amount,
+      method: 'Cash',
+      feeIds: [feeId]
     });
+
     const savedPayment = await payment.save();
+
+    // Update the fee document
     await Fee.findByIdAndUpdate(
       feeId,
       { $push: { payments: savedPayment._id }, $set: { status: 'paid' } },
       { new: true }
     );
+
     res.status(201).json(savedPayment);
   } catch (error) {
     console.error('Failed to create payment:', error);
@@ -46,7 +63,6 @@ async function createPaymentForFee(req, res) {
   }
 }
 
-module.exports = createPaymentForFee;
 
 
 async function createCashPaymentByAmount(req, res) {
@@ -132,12 +148,11 @@ function getPaymentForMonth(feeType, generateDate) {
 }
 async function getPaymentDetails(req, res) {
   try {
-    // const { schoolId } = req.body;
-    const schoolId ="662275f4d7839e51bc7f5465";
+    const { schoolId } = req.body;
     const payments = await Payment.find({ schoolId }).populate('studentId');
-
+    console.log(payments);
     const formattedPayments = payments.map(payment => {
-      const paymentForMonth = getPaymentForMonth(payment.feeType, payment.studentId.yearToFee.get(payment.generateDate.getFullYear()));
+      const paymentForMonth = getPaymentForMonth(payment.feeType, payment.studentId.yearToFee.get(payment.paymentDate.getFullYear()));
 
       return {
         rollNumber: payment.studentId.rollNumber,

@@ -25,10 +25,10 @@ async function getSchoolByID(req, res) {
 
 async function createSchool(req, res) {
   try {
-    const { name, location, contact, password } = req.body;
+    const { name, location, contact, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 8);
     console.log(hashedPassword)
-    const school = new School({ name, location, contact, password: hashedPassword });
+    const school = new School({ name, location, contact, email, password: hashedPassword });
     const savedSchool = await school.save();
     res.status(201).json({ id: savedSchool._id });
   } catch (error) {

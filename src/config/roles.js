@@ -13,6 +13,7 @@ const allRoles = {
     'viewFees',
     'createFee',
     'manageFee',
+    'deleteFee',
     
     'makeCashPayments',
     'viewPayments',

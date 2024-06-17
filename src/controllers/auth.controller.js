@@ -13,7 +13,7 @@ const { tokenTypes } = require('../config/tokens');
 
 const schoolLogin = catchAsync(async (req, res) => {
   const { email, password } = req.body;
-  const school = await School.findOne({ contact: email });
+  const school = await School.findOne({ email: email });
   if (!school || !(await school.isPasswordMatch(password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
@@ -23,7 +23,6 @@ const schoolLogin = catchAsync(async (req, res) => {
   };
   const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
   const accessToken = jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.accessExpirationMinutes });
-  // console.log(accessToken);
   res.cookie('accessToken', accessToken, {
     expires: accessTokenExpires.toDate(),
     httpOnly: true,

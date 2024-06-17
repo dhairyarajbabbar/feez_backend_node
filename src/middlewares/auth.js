@@ -5,12 +5,9 @@ const { roleRights } = require('../config/roles');
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, school, info) => {
   if (err || info || !school) {
-    // console.log("here is the problem", err, info, school);
     return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
   }
   req.body.schoolId = school._id;
-  // console.log(school);
-
   if (requiredRights.length) {
     const schoolRole = "school"; 
     const schoolRights = roleRights.get(schoolRole);
@@ -23,8 +20,6 @@ const verifyCallback = (req, resolve, reject, requiredRights) => async (err, sch
 };
 
 const auth = (...requiredRights) => async (req, res, next) => {
-  // console.log('Authorization token:', req.headers.authorization);
-
   return new Promise((resolve, reject) => {
     passport.authenticate('jwt', { session: false }, verifyCallback(req, resolve, reject, requiredRights))(req, res, next);
   })
